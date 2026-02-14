@@ -157,6 +157,28 @@ function renderWorkoutChecklist(workout) {
   });
 }
 
+
+async function updateTodayMetrics(defaultEquipment = []) {
+  const today = formatDate();
+  const nutrition = await idb.get('nutritionLogs', today);
+  const calIn = nutrition?.in ?? 0;
+  const calOut = nutrition?.out ?? 0;
+  const deficit = calOut - calIn;
+  $('#todayCalIn').textContent = String(calIn);
+  $('#todayCalOut').textContent = String(calOut);
+  $('#todayDeficit').textContent = String(deficit);
+
+  const bodies = (await idb.list('bodyLogs')).sort((a, b) => a.date.localeCompare(b.date));
+  $('#todayWeight').textContent = bodies.length ? `${bodies[bodies.length - 1].weight}` : '—';
+
+  const logs = await idb.list('workoutLogs');
+  const completed = logs.some((l) => l.date === today);
+  $('#todayWorkoutStatus').textContent = `Workout status: ${completed ? 'completed' : 'pending'}`;
+  if ($('#equipmentSummary').textContent.includes('—')) {
+    $('#equipmentSummary').textContent = `Equipment: ${equipmentSummaryText({ available: defaultEquipment })}`;
+  }
+}
+
 async function loadToday() {
   const form = $('#todayBuilderForm');
   const sel = await getEquipmentSelection();
@@ -176,6 +198,8 @@ async function loadToday() {
     }
   }
 
+  $('#startWorkoutBtn').onclick = () => { document.getElementById('todayChecklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
   $('#generateWorkoutBtn').onclick = async () => {
     const opts = { target: form.target.value, intensity: form.intensity.value, duration: Number(form.duration.value), equipmentAvailable: getCheckedEquipment(form, 'equipmentAvailable'), equipmentPreference: form.equipmentPreference.value };
     await setMeta('builderSelection', opts);
@@ -193,6 +217,8 @@ async function loadToday() {
     if (appState.activeWorkoutSource === 'custom') await setMeta('todayCustomWorkout', null);
     await saveSnapshot('auto-workout'); showToast('Workout logged successfully.'); await renderAll();
   };
+
+  await updateTodayMetrics(sel.available);
 }
 
 async function loadPlanUI() {
