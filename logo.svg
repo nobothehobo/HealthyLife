@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="HealthyLife logo">
+  <!-- Heart -->
+  <path d="M128 224s-76-44.9-104.7-92.7C3.6 92.8 16.4 56.9 47.5 44.1c25.2-10.5 53.5-1.2 70.3 19.2
+           16.8-20.4 45.1-29.7 70.3-19.2 31.1 12.8 43.9 48.7 24.2 87.2C204 179.1 128 224 128 224z"
+        fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/>
+
+  <!-- Dumbbell (optically centered inside heart for small sizes) -->
+  <g fill="currentColor" transform="translate(128 132) scale(0.95) translate(-128 -128)">
+    <rect x="86" y="118" width="84" height="20" rx="10"/>
+    <rect x="70" y="108" width="20" height="40" rx="8"/>
+    <rect x="166" y="108" width="20" height="40" rx="8"/>
+    <rect x="54" y="104" width="16" height="48" rx="7"/>
+    <rect x="186" y="104" width="16" height="48" rx="7"/>
+  </g>
+</svg>
