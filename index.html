@@ -1,1 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HealthyLife</title>
+  <meta name="theme-color" content="#2f72ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="HealthyLife" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="logo.svg" />
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
+  <link rel="alternate icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="dbErrorBanner" class="banner hidden">
+    <div>
+      <strong>Local database issue:</strong> We couldn't open IndexedDB reliably. Your device may be low on storage or blocking local persistence.
+    </div>
+    <div class="banner-actions">
+      <button id="exportAvailableBtn" class="btn secondary">Export what’s available</button>
+      <button id="resetDbBtn" class="btn danger">Reset local database</button>
+    </div>
+  </div>
 
+  <header class="app-header">
+    <div class="brand-wrap">
+      <img src="logo.svg" alt="HealthyLife logo" class="brand-logo" />
+      <div class="brand-text">
+        <h1>HealthyLife</h1>
+        <p class="sub">Adaptive at-home coach</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="saveStatus" class="status-pill">Saved locally</div>
+      <div id="lastSaved" class="muted">Last saved: —</div>
+      <label class="toggle-wrap">
+        <span>Dark mode</span>
+        <input id="themeToggle" type="checkbox" />
+      </label>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabNav">
+    <button data-tab="today" class="tab active">Today</button>
+    <button data-tab="plan" class="tab">Plan</button>
+    <button data-tab="log" class="tab">Log</button>
+    <button data-tab="nutrition" class="tab">Nutrition</button>
+    <button data-tab="progress" class="tab">Progress</button>
+    <button data-tab="backup" class="tab">Backup</button>
+    <button data-tab="settings" class="tab">Settings</button>
+  </nav>
+
+  <main>
+    <section id="today" class="page active">
+      <div class="card">
+        <h2>Today’s workout</h2>
+        <p id="todaySummary" class="muted"></p>
+        <div id="todayChecklist" class="stack"></div>
+        <button id="completeWorkoutBtn" class="btn">Mark workout complete</button>
+      </div>
+    </section>
+
+    <section id="plan" class="page">
+      <div class="card">
+        <h2>Adaptive Plan</h2>
+        <form id="onboardingForm" class="grid-form">
+          <label>Goal
+            <select name="goal" required>
+              <option value="fat_loss">Fat loss</option>
+              <option value="tone">Tone</option>
+              <option value="strength">Strength</option>
+              <option value="maintain">Maintain</option>
+            </select>
+          </label>
+          <label>Days per week
+            <input name="daysPerWeek" type="number" min="2" max="6" value="3" required />
+          </label>
+          <label>Equipment
+            <select name="equipment" required>
+              <option value="bodyweight">Bodyweight</option>
+              <option value="dumbbells">Dumbbells</option>
+            </select>
+          </label>
+          <label>Session length (minutes)
+            <input name="sessionLength" type="number" min="10" max="30" value="20" required />
+          </label>
+          <button class="btn" type="submit">Generate weekly plan</button>
+        </form>
+        <h3>Current schedule</h3>
+        <div id="planSchedule" class="stack"></div>
+      </div>
+    </section>
+
+    <section id="log" class="page">
+      <div class="card">
+        <h2>Workout log</h2>
+        <div id="workoutLogList" class="stack"></div>
+      </div>
+      <div class="card">
+        <h3>Log details</h3>
+        <form id="logDetailForm" class="grid-form">
+          <input type="hidden" name="id" />
+          <label>Date <input name="date" readonly /></label>
+          <label>Focus <input name="focus" readonly /></label>
+          <label>Duration (min) <input name="duration" type="number" readonly /></label>
+          <label>Notes <textarea name="notes" rows="3"></textarea></label>
+          <label>Difficulty
+            <select name="difficulty">
+              <option value="">--</option>
+              <option value="easy">Easy</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label class="inline"><input name="soreness" type="checkbox" /> Soreness flag</label>
+          <button class="btn" type="submit">Save log updates</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="nutrition" class="page">
+      <div class="card">
+        <h2>Nutrition</h2>
+        <form id="nutritionForm" class="grid-form">
+          <label>Date <input name="date" type="date" required /></label>
+          <label>Calories in <input name="in" type="number" min="0" required /></label>
+          <label>Calories out <input name="out" type="number" min="0" required /></label>
+          <button class="btn" type="submit">Save nutrition entry</button>
+        </form>
+        <div id="nutritionSummary" class="muted"></div>
+        <canvas id="nutritionChart" width="900" height="260"></canvas>
+      </div>
+    </section>
+
+    <section id="progress" class="page">
+      <div class="card">
+        <h2>Body progress</h2>
+        <form id="bodyForm" class="grid-form">
+          <label>Date <input name="date" type="date" required /></label>
+          <label>Weight (kg) <input name="weight" type="number" step="0.1" required /></label>
+          <label>Waist (cm) <input name="waist" type="number" step="0.1" /></label>
+          <label>Chest (cm) <input name="chest" type="number" step="0.1" /></label>
+          <label>Body fat est. (%) <input name="bodyFat" type="number" step="0.1" /></label>
+          <button class="btn" type="submit">Save body log</button>
+        </form>
+        <p class="disclaimer">Body fat estimate is optional and only a rough self-tracking estimate. It is not a medical measurement or diagnosis.</p>
+        <canvas id="weightChart" width="900" height="260"></canvas>
+        <div id="milestones" class="muted"></div>
+      </div>
+    </section>
+
+    <section id="backup" class="page">
+      <div class="card">
+        <h2>Backup & Restore</h2>
+        <div class="stack">
+          <button id="exportBtn" class="btn">Export full database JSON</button>
+          <div class="import-row">
+            <input id="importFile" type="file" accept="application/json" />
+            <label><input type="radio" name="importMode" value="merge" checked /> Merge</label>
+            <label><input type="radio" name="importMode" value="replace" /> Replace</label>
+            <button id="importBtn" class="btn secondary">Import JSON</button>
+          </div>
+        </div>
+        <h3>Automatic snapshots (last 10)</h3>
+        <div id="snapshotList" class="stack"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="page">
+      <div class="card">
+        <h2>Install HealthyLife</h2>
+        <p class="muted">On iPhone/iPad Safari, tap <strong>Share</strong> → <strong>Add to Home Screen</strong>. Once added, HealthyLife opens in standalone app mode like a native app.</p>
+        <div class="stack">
+          <div class="list-item">
+            <strong>Step 1:</strong> Open HealthyLife in Safari.
+          </div>
+          <div class="list-item">
+            <strong>Step 2:</strong> Tap the Share button in Safari.
+          </div>
+          <div class="list-item">
+            <strong>Step 3:</strong> Choose “Add to Home Screen” and confirm.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
